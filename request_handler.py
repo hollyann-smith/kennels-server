@@ -1,6 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import get_all_animals, get_single_animal
+from views import get_all_animals, get_single_animal, get_single_location, get_all_locations, get_single_employee, get_all_employees
+
 
 # Here's a class. It inherits from another class.
 # For now, think of a class as a container for functions that
@@ -39,6 +40,8 @@ class HandleRequests(BaseHTTPRequestHandler):
     # Here's a method on the class that overrides the parent's method.
     # It handles any GET request.
     def do_GET(self):
+        """UGH
+        """
         self._set_headers(200)
         response = {}  # Default response
 
@@ -51,6 +54,18 @@ class HandleRequests(BaseHTTPRequestHandler):
 
             else:
                 response = get_all_animals()
+        if resource == "locations":
+            if id is not None:
+                response = get_single_location(id)
+
+            else:
+                response = get_all_locations()
+        if resource == "employees":
+            if id is not None:
+                response = get_single_employee(id)
+
+            else:
+                response = get_all_employees()
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -74,6 +89,28 @@ class HandleRequests(BaseHTTPRequestHandler):
         """Handles PUT requests to the server
         """
         self.do_POST()
+    def parse_url(self, path):
+        """Parses URL
+        """
+        # Just like splitting a string in JavaScript. If the
+        # path is "/animals/1", the resulting list will
+        # have "" at index 0, "animals" at index 1, and "1"
+        # at index 2.
+        path_params = path.split("/")
+        resource = path_params[1]
+        id = None
+
+        # Try to get the item at index 2
+        try:
+            # Convert the string "1" to the integer 1
+            # This is the new parseInt()
+            id = int(path_params[2])
+        except IndexError:
+            pass  # No route parameter exists: /animals
+        except ValueError:
+            pass  # Request had trailing slash: /animals/
+
+        return (resource, id)  # This is a tuple
 
 
 # This function is not inside the class. It is the starting
